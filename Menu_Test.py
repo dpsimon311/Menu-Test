@@ -83,3 +83,30 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  float temperature = readSensor(); // Replace with real function
+  Serial.print("Temp: ");
+  Serial.println(temperature);
+  delay(1000);
+}
+
+
+from pyb import UART
+import time
+
+# UART(1) corresponds to X1=RX, X2=TX on original Pyboard
+uart = UART(1, 115200)  # Baud rate must match Artemis
+uart.init(115200, bits=8, parity=None, stop=1)
+
+while True:
+    if uart.any():
+        line = uart.readline()
+        if line:
+            print(line.decode().strip())
+    time.sleep(0.1)
+
