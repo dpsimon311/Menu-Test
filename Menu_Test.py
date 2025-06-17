@@ -109,4 +109,28 @@ while True:
         if line:
             print(line.decode().strip())
     time.sleep(0.1)
+Step 1 — Edit /flash/boot.py
+You only need this once — place it on internal flash:
+
+import pyb
+import os
+
+# Force boot from internal flash
+pyb.boot('F')  # 'F' for Flash boot
+
+# Try to mount SD card for storage
+try:
+    sd = pyb.SDCard()
+    os.mount(sd, '/sd')
+    print("SD card mounted at /sd")
+except OSError:
+    print("No SD card detected.")
+
+# Write to file on SD card
+with open('/sd/myfile.txt', 'w') as f:
+    f.write('Logging data to SD card')
+
+# Read from file
+with open('/sd/myfile.txt', 'r') as f:
+    print(f.read())
 
