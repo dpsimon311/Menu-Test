@@ -134,3 +134,47 @@ with open('/sd/myfile.txt', 'w') as f:
 with open('/sd/myfile.txt', 'r') as f:
     print(f.read())
 
+from machine import I2C, Pin
+import time
+===================================
+# Initialize I2C (adjust pins as needed)
+i2c = I2C(1, freq=100_000)  # X9=SCL, X10=SDA by default
+address = 0x36
+
+# Helper to read 16-bit signed integer from registers 0x00 and 0x01
+def read_encoder_position():
+    data = i2c.readfrom_mem(address, 0x00, 2)
+    pos = int.from_bytes(data, 'little', signed=True)
+    return pos
+
+# Read button state (0 = not pressed, 1 = pressed)
+def read_button_state():
+    data = i2c.readfrom_mem(address, 0x03, 1)
+    return bool(data[0])
+
+# Optionally read event flags (not always necessary)
+def read_button_event():
+    data = i2c.readfrom_mem(address, 0x05, 1)
+    return data[0]
+
+# Store previous state
+last_position = read_encoder_position()
+last_button = read_button_state()
+
+print("Begin reading encoder and button via I2C...")
+
+while True:
+    position = read_encoder_position()
+    if position != last_position:
+        direction = "Right" if position > last_position else "Left"
+        print(f"Rotated {direction}: {position}")
+        last_position = position
+
+    button = read_button_state()
+    if button and not last_button:
+        print("Button Pressed")
+    elif not button and last_button:
+        print("Button Released")
+    last_button = button
+
+    time.sleep(0.05)
