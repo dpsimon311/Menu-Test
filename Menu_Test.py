@@ -226,3 +226,117 @@ void setup() {
 void loop() {
   // Nothing here
 }
+===============================
+#include <SPI.h>
+#include <SD.h>
+
+const int chipSelect = 10;  // Set your actual CS pin
+const int MAX_FILENAME_LEN = 32;
+
+void listFiles() {
+  File root = SD.open("/");
+  int index = 1;
+
+  while (true) {
+    File entry = root.openNextFile();
+    if (!entry) break;  // no more files
+
+    if (!entry.isDirectory()) {
+      Serial.print(index++);
+      Serial.print(": ");
+      Serial.println(entry.name());
+    }
+
+    entry.close();
+  }
+}
+
+void writeToFile(const String& filename) {
+  char name[MAX_FILENAME_LEN];
+  filename.toCharArray(name, MAX_FILENAME_LEN);
+  
+  Serial.println("Enter text to write: ");
+  while (!Serial.available());
+  String text = Serial.readStringUntil('\n');
+
+  File file = SD.open(name, FILE_WRITE);
+  if (file) {
+    file.println(text);
+    file.close();
+    Serial.print("Text written to ");
+    Serial.println(filename);
+  } else {
+    Serial.println("Failed to open file for writing.");
+  }
+}
+
+void deleteFile(const String& filename) {
+  char name[MAX_FILENAME_LEN];
+  filename.toCharArray(name, MAX_FILENAME_LEN);
+
+  Serial.print("Are you sure? y/n: ");
+  while (!Serial.available());
+  String choice = Serial.readStringUntil('\n');
+
+  if (choice == "y") {
+    if (SD.remove(name)) {
+      Serial.print(filename);
+      Serial.println(" deleted.");
+    } else {
+      Serial.println("Failed to delete file.");
+    }
+  }
+}
+
+void fileSize(const String& filename) {
+  char name[MAX_FILENAME_LEN];
+  filename.toCharArray(name, MAX_FILENAME_LEN);
+
+  File file = SD.open(name);
+  if (file) {
+    Serial.print(filename);
+    Serial.print(" size: ");
+    Serial.print(file.size());
+    Serial.println(" bytes");
+    file.close();
+  } else {
+    Serial.println("Failed to open file.");
+  }
+}
+
+void createAndWriteFile() {
+  Serial.print("Enter new file name: ");
+  while (!Serial.available());
+  String filename = Serial.readStringUntil('\n');
+
+  char name[MAX_FILENAME_LEN];
+  filename.toCharArray(name, MAX_FILENAME_LEN);
+
+  Serial.print("Enter initial text: ");
+  while (!Serial.available());
+  String text = Serial.readStringUntil('\n');
+
+  File file = SD.open(name, FILE_WRITE);
+  if (file) {
+    file.println(text);
+    file.close();
+    Serial.print(filename);
+    Serial.println(" created and written to.");
+  } else {
+    Serial.println("Failed to create file.");
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial);  // Wait for Serial Monitor
+
+  if (!SD.begin(chipSelect)) {
+    Serial.println("SD card initialization failed!");
+    return;
+  }
+
+  Serial.println("SD card initialized.");
+  // Call any function to test
+  listFiles();
+}
