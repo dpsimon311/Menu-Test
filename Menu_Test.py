@@ -178,3 +178,51 @@ while True:
     last_button = button
 
     time.sleep(0.05)
+========================================================
+String* parseCSV(String line, int* fieldCount) {
+  // Count how many commas (fields = commas + 1)
+  int count = 1;
+  for (int i = 0; i < line.length(); i++) {
+    if (line.charAt(i) == ',') {
+      count++;
+    }
+  }
+
+  // Allocate array on heap
+  String* fields = new String[count];
+  int startIdx = 0;
+  int idx = 0;
+
+  for (int i = 0; i <= line.length(); i++) {
+    if (line.charAt(i) == ',' || i == line.length()) {
+      fields[idx++] = line.substring(startIdx, i);
+      startIdx = i + 1;
+    }
+  }
+
+  *fieldCount = count;
+  return fields;
+}
+
+void setup() {
+  Serial.begin(9600);
+  delay(500);  // Wait for Serial monitor to open
+
+  String csv = "2025-07-28,25.6,26.3,0.7,extra,data,fields";
+  int numFields = 0;
+
+  String* parsed = parseCSV(csv, &numFields);
+
+  for (int i = 0; i < numFields; i++) {
+    Serial.print("Field ");
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(parsed[i]);
+  }
+
+  delete[] parsed;  // Free heap memory
+}
+
+void loop() {
+  // Nothing here
+}
